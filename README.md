@@ -1,5 +1,5 @@
-Docker container information
-============================
+System information debug server
+===============================
 
 Runs NodeJS HTTP server on port 3000 with endpoints below.
 
