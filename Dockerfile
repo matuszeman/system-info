@@ -1,5 +1,4 @@
-FROM node:slim
-VOLUME /usr/src/app/data
+FROM node:alpine
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm i
