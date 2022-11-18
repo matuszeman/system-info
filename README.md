@@ -1,21 +1,52 @@
-System information debug server
-===============================
+Container debug
+===============
 
 Runs NodeJS HTTP server on port 3000 with endpoints below.
 
-_Warning: The server is intended for test and debug purposes only
-and might potentially expose sensitive data. Never use in production!_
+Env config:
+`koa_proxy` - use 
+`process_sigterm_sleep` - sleep before exiting the process when SIGTERM is received   
 
-### GET /os
+### GET /
 
-`os` below stands for NodeJS `os` module: https://nodejs.org/api/os.html
+`os` - https://nodejs.org/api/os.html
 
 ```
 {
+  runningTime: os.hostname(),
   hostname: os.hostname(),
   arch: os.arch(),
-  freemem: os.freemem(),
-  networkInterfaces: os.networkInterfaces(),
+  freemem: os.freemem()
+}
+```
+
+### GET /http
+
+`ctx.request` - https://koajs.com/#request
+
+```
+{
+  origin: ctx.request.origin,
+  method: ctx.request.method,
+  protocol: ctx.request.protocol,
+  url: ctx.request.url,
+  href: ctx.request.href,
+  host: ctx.request.host,
+  hostname: ctx.request.hostname,
+  path: ctx.request.path,
+  ip: ctx.request.ip,
+  ips: ctx.request.ips,
+  headers: ctx.request.headers
+}
+```
+
+### GET /network
+
+`os` - https://nodejs.org/api/os.html
+
+```
+{
+  interfaces: os.networkInterfaces()
 }
 ```
 
@@ -27,11 +58,14 @@ Returns files under `data` folder.
 
 ```
 {
-  paths: [
-    //file paths
+  files: [
+    // file paths
   ]
 }
 ```
+
+Return file content:  
+GET /volume?file=some-file.txt
 
 ### GET /process
 
@@ -46,4 +80,3 @@ Returns files under `data` folder.
   env: process.env
 }
 ```
-
