@@ -186,6 +186,11 @@ app.use(async (ctx, next) => {
     const before = getProcessStats();
     await next();
     if (ctx.body) {
+      ctx.body.host = {
+        runningTime: Math.ceil((Date.now() - startupTime) / 1000),
+        hostname: os.hostname(),
+        arch: os.arch()
+      };
       ctx.body.request = {
         before,
         after: getProcessStats()
@@ -250,7 +255,7 @@ function getProcessStats() {
     heapTotal: bytesToMbs(memory.heapTotal),
     heapUsed: bytesToMbs(memory.heapUsed),
     external: bytesToMbs(memory.external),
-    extraMemory: bytesToMbs(memoryBuffers['extraMemory'].length)
+    extraMemory: bytesToMbs(memoryBuffers.extraMemory.length)
   }
 }
 
