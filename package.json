@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node --expose_gc index.js",
+    "dev": "node --expose-gc --watch index.js",
+    "start": "node --expose-gc index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
