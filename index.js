@@ -88,67 +88,67 @@ router.get('/volume', async ctx => {
 });
 
 router.get('/memory/set', async ctx => {
-  const options = {
+  const params = {
     megabytes: Number(ctx.query.megabytes),
   }
-  console.log('/memory/set', options);
+  console.log('/memory/set', params);
 
-  setMemory('extraMemory', options.megabytes)
+  setMemory('extraMemory', params.megabytes)
 
   ctx.body = {
-    options
+    params
   }
-})
+});
 
 router.get('/memory/inc', async ctx => {
-  const options = {
+  const params = {
     megabytes: Number(ctx.query.megabytes),
   }
-  console.log('/memory/inc', options);
+  console.log('/memory/inc', params);
 
-  incMemory('extraMemory', options.megabytes);
+  incMemory('extraMemory', params.megabytes);
 
   ctx.body = {
-    options
+    params
   };
 });
 
 router.get('/memory/dec', async ctx => {
-  const options = {
+  const params = {
     megabytes: Number(ctx.query.megabytes),
   }
-  console.log('/memory/dec', options);
+  console.log('/memory/dec', params);
 
-  decMemory('extraMemory', options.megabytes);
+  decMemory('extraMemory', params.megabytes);
 
   ctx.body = {
-    options
+    params
   };
 });
 
 router.get('/memory/stress', async ctx => {
-  const options = {
+  const params = {
     megabytes: Number(ctx.query.megabytes),
     sleep_after: ctx.query.sleep_after ? Number(ctx.query.sleep_after) : 0,
     async: !!ctx.query.async
   }
-  console.log('/memory/stress', options);
+  console.log('/memory/stress', params);
 
-  if (options.async) {
-    incMemory('extraMemory', options.megabytes);
+  if (params.async) {
+    incMemory('extraMemory', params.megabytes);
 
     setTimeout(() => {
-      decMemory('extraMemory', options.megabytes);
-      console.log('/stress async finished', options);
-    }, options.sleep_after * 1000);
+      decMemory('extraMemory', params.megabytes);
+      console.log('/stress async finished', params);
+    }, params.sleep_after * 1000);
   } else {
-    console.log(`/stress sleep for ${options.sleep_after}s`);
-    await sleep(options.sleep_after * 1000);
-    decMemory('extraMemory', options.megabytes);
+    console.log(`/stress sleep for ${params.sleep_after}s`);
+    await sleep(params.sleep_after * 1000);
+    decMemory('extraMemory', params.megabytes);
   }
 
   ctx.body = {
-    options
+    params
   };
 });
 
