@@ -1,9 +1,16 @@
-const {Buffer} = require('node:buffer');
-const Koa = require('koa');
-const Router = require('@koa/router');
-const os = require('os');
-const fs = require('fs');
-const globby = require('globby');
+import {globby} from 'globby';
+import {Buffer} from 'node:buffer';
+import Koa from 'koa';
+import Router from '@koa/router';
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import {default as workerpool, Promise as workerPoolPromise} from 'workerpool';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const pool = workerpool.pool();
 
 const appConfig = {
   koa_proxy: !!Number(process.env.koa_proxy),
@@ -13,10 +20,6 @@ const appConfig = {
 
 console.log('Config:', JSON.stringify(appConfig, null, 2))
 console.log('Garbage collector active: ', !!global.gc);
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 process.on('SIGTERM', () => {
   console.log('SIGTERM received.');
@@ -87,6 +90,44 @@ router.get('/volume', async ctx => {
   };
 });
 
+// https://yarin.dev/nodejs-cpu-bound-tasks-worker-threads/
+router.get('/cpu/stress', async ctx => {
+  const params = {
+    fibonacci_number: ctx.query.fibonacci_number ? Number(ctx.query.fibonacci_number) : 50,
+    async: !!ctx.query.async,
+    period: ctx.query.period ? Number(ctx.query.period) : 1
+  }
+
+  console.log('/cpu/stress', params);
+
+  if (params.async) {
+    pool.exec(fibonacci, [params.fibonacci_number])
+      .timeout(params.period * 1000)
+      .then(() => {
+        console.log('/cpu/stress: async finished', params);
+      }).catch((e) => {
+      if (e instanceof workerPoolPromise.TimeoutError) {
+        console.log('/cpu/stress: async finished', params);
+        return;
+      }
+      console.error('/cpu/stress: async finished with error', params, e);
+    });
+  } else {
+    await pool.exec(fibonacci, [params.fibonacci_number])
+      .timeout(params.period * 1000)
+      .catch((e) => {
+        if (e instanceof workerPoolPromise.TimeoutError) {
+          return;
+        }
+        throw e;
+      });
+  }
+
+  ctx.body = {
+    params
+  }
+});
+
 router.get('/memory/set', async ctx => {
   const params = {
     megabytes: Number(ctx.query.megabytes),
@@ -129,7 +170,7 @@ router.get('/memory/dec', async ctx => {
 router.get('/memory/stress', async ctx => {
   const params = {
     megabytes: Number(ctx.query.megabytes),
-    sleep_after: ctx.query.sleep_after ? Number(ctx.query.sleep_after) : 0,
+    period: ctx.query.period ? Number(ctx.query.period) : 1,
     async: !!ctx.query.async
   }
   console.log('/memory/stress', params);
@@ -140,10 +181,10 @@ router.get('/memory/stress', async ctx => {
     setTimeout(() => {
       decMemory('extraMemory', params.megabytes);
       console.log('/stress async finished', params);
-    }, params.sleep_after * 1000);
+    }, params.period * 1000);
   } else {
-    console.log(`/stress sleep for ${params.sleep_after}s`);
-    await sleep(params.sleep_after * 1000);
+    console.log(`/stress sleep for ${params.period}s`);
+    await sleep(params.period * 1000);
     decMemory('extraMemory', params.megabytes);
   }
 
@@ -268,5 +309,14 @@ function bytesToMbs(bytes) {
 
 function mbsToBytes(megabytes) {
   return megabytes * bytesInMb;
+}
+
+function fibonacci(num) {
+  if (num <= 1) return num;
+  return fibonacci(num - 1) + fibonacci(num - 2);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
