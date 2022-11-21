@@ -44,6 +44,9 @@ const router = new Router();
 
 const startupTime = Date.now();
 const startupMemoryUsage = process.memoryUsage().rss;
+const memoryBuffers = {
+  extraMemory: Buffer.alloc(0, 1, 'binary')
+}
 
 router.get('/', async ctx => {
   ctx.body = {
@@ -83,10 +86,6 @@ router.get('/volume', async ctx => {
     files
   };
 });
-
-const memoryBuffers = {
-  extraMemory: Buffer.alloc(0, 1, 'binary')
-}
 
 router.get('/memory/set', async ctx => {
   const options = {
@@ -213,6 +212,8 @@ app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(3000);
 
+console.log('Running on http://localhost:3000/');
+
 function setMemory(buffer, megabytes) {
   global[buffer] = null;
   gc();
@@ -269,4 +270,3 @@ function mbsToBytes(megabytes) {
   return megabytes * bytesInMb;
 }
 
-console.log('Running on http://localhost:3000/');
